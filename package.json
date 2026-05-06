@@ -11,7 +11,8 @@
     "publish:rn": "pnpm run -C packages/rn release",
     "preview:react": "pnpm install && pnpm run -C example/react-next-demo dev",
     "preview:rn": "pnpm install && pnpm run -C example/rn-expo-demo web",
-    "sync-icon": "tsx sh/sync-icon.ts"
+    "sync-icon": "tsx sh/sync-icon.ts",
+    "release": "tsx sh/release.ts"
   },
   "keywords": [],
   "author": "",

@@ -48,3 +48,6 @@ dist
 
 # Figma API cache (should not be committed)
 figma-cache.json
+
+# Release cache
+.icon-release-cache.json
