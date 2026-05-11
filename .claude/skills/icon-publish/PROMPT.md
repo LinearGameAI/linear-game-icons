@@ -66,11 +66,32 @@
    - 运行: `pnpm run publish:rn`
    - 发布新版本到 npm
 
-### 第四阶段：提交变更
+### 第四阶段：提交变更并推送
 
 10. **提交 git 变更**
     - 运行: `git add .`
     - 提交信息格式: `feat: sync icons and bump react-icon to {react_version}, rn-icon to {rn_version}`
+    - 运行: `git commit -m "feat: sync icons and bump react-icon to {react_version}, rn-icon to {rn_version}"`
+
+11. **推送到远端**
+    - 运行: `git push origin main`
+    - 将变更推送到远程仓库
+
+### 第五阶段：发送 Lark 通知
+
+12. **发送发版通知到 Lark 群**
+    - 检查环境变量 `LARK_WEBHOOK_URL` 是否配置
+    - 如果未配置，跳过此步骤并提示用户
+    - 如果已配置，发送包含以下信息的消息：
+      - 📦 React 包名和版本号：`@yoroll/react-icon@{react_version}`
+      - 📦 React Native 包名和版本号：`@yoroll/rn-icon@{rn_version}`
+      - 🕐 发版时间：当前时间（格式：YYYY-MM-DD HH:mm:ss）
+      - 🔗 预览链接：
+        - React 预览：`https://linear-game-icons.vercel.app/react`
+        - React Native 预览：`https://linear-game-icons.vercel.app/rn`
+    - 使用 curl 发送 POST 请求到 Lark webhook
+    - 消息格式使用 Lark 的 interactive card 格式，包含标题、内容和链接按钮
+    - 如果发送失败，记录错误但不影响整体流程（发版已成功）
 
 ## 重要说明
 
@@ -94,3 +115,62 @@
 - 构建完成无错误
 - 包已发布到 npm
 - Git 变更已提交
+- 变更已推送到远端
+- Lark 通知已发送（如果配置了 webhook）
+
+## Lark 消息格式示例
+
+```json
+{
+  "msg_type": "interactive",
+  "card": {
+    "header": {
+      "title": {
+        "tag": "plain_text",
+        "content": "🎉 图标库发版成功"
+      },
+      "template": "green"
+    },
+    "elements": [
+      {
+        "tag": "div",
+        "text": {
+          "tag": "lark_md",
+          "content": "**📦 React 包**\n@yoroll/react-icon@{react_version}\n\n**📦 React Native 包**\n@yoroll/rn-icon@{rn_version}\n\n**🕐 发版时间**\n{publish_time}"
+        }
+      },
+      {
+        "tag": "action",
+        "actions": [
+          {
+            "tag": "button",
+            "text": {
+              "tag": "plain_text",
+              "content": "React 预览"
+            },
+            "type": "primary",
+            "url": "https://linear-game-icons.vercel.app/react"
+          },
+          {
+            "tag": "button",
+            "text": {
+              "tag": "plain_text",
+              "content": "RN 预览"
+            },
+            "type": "default",
+            "url": "https://linear-game-icons.vercel.app/rn"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+## 环境变量配置
+
+在项目根目录的 `.env` 文件或系统环境变量中配置：
+
+```bash
+LARK_WEBHOOK_URL=https://open.feishu.cn/open-apis/bot/v2/hook/your-webhook-token
+```

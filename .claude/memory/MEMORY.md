@@ -1,0 +1,1 @@
+- [Icon publish autonomous execution](feedback_icon_publish_autonomous.md) — Run /icon-publish workflow end-to-end without user confirmation
