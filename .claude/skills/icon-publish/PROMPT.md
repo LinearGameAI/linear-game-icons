@@ -87,8 +87,7 @@
       - 📦 React Native 包名和版本号：`@yoroll/rn-icon@{rn_version}`
       - 🕐 发版时间：当前时间（格式：YYYY-MM-DD HH:mm:ss）
       - 🔗 预览链接：
-        - React 预览：`https://linear-game-icons.vercel.app/react`
-        - React Native 预览：`https://linear-game-icons.vercel.app/rn`
+        - 预览地址：`https://lineargameai.github.io/linear-game-icons/`
     - 使用 curl 发送 POST 请求到 Lark webhook
     - 消息格式使用 Lark 的 interactive card 格式，包含标题、内容和链接按钮
     - 如果发送失败，记录错误但不影响整体流程（发版已成功）
@@ -146,19 +145,10 @@
             "tag": "button",
             "text": {
               "tag": "plain_text",
-              "content": "React 预览"
+              "content": "查看预览"
             },
             "type": "primary",
-            "url": "https://linear-game-icons.vercel.app/react"
-          },
-          {
-            "tag": "button",
-            "text": {
-              "tag": "plain_text",
-              "content": "RN 预览"
-            },
-            "type": "default",
-            "url": "https://linear-game-icons.vercel.app/rn"
+            "url": "https://lineargameai.github.io/linear-game-icons/"
           }
         ]
       }
