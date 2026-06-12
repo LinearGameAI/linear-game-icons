@@ -127,16 +127,27 @@ async function main() {
       }
     }
 
-    // 6. 下载并处理
+    // 6. 下载并处理（带重试，避免大量串行请求时偶发 socket hang up 中断整个流程）
+    const downloadWithRetry = async (url: string, name: string, retries = 3) => {
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          return await axios.get(url, { responseType: 'text', timeout: 30000 });
+        } catch (err) {
+          if (attempt === retries) throw err;
+          console.warn(chalk.yellow(`⚠️ 下载 ${name} 失败 (第 ${attempt} 次)，${attempt} 秒后重试: ${(err as Error).message}`));
+          await new Promise(r => setTimeout(r, attempt * 1000));
+        }
+      }
+    };
     for (const node of targetNodes) {
       const url = urlMap[node.id];
       if (!url) {
         console.warn(`❌ 找不到 ${node.name} 的下载链接`);
         continue;
       }
-      const svgContent = await axios.get(url, { responseType: 'text' }); //改成fetch
+      const svgContent = await downloadWithRetry(url, node.name);
       const svgPath = path.join(OUTPUT_DIR, `${node.name}.svg`);
-      await writeFile(svgPath, svgContent.data);
+      await writeFile(svgPath, svgContent!.data);
       console.log(`✅ 下载 ${node.name} 到 ${svgPath}`);
     }
     console.log(chalk.green(`✅ 完成同步 ${targetNodes.length} 个图标`));
