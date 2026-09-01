@@ -1,258 +1,557 @@
-'use client';
+'use client'
 
 import * as SvgComs from '@yoroll/react-icon'
-import { useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 
-const COLORS = ['#ffffff', '#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff']
-const SIZES = [40, 30, 24, 16]
+type IconEntry = [string, React.ComponentType<SvgComs.IconProps>]
+type CategoryId = 'all' | 'interface' | 'game' | 'media' | 'social' | 'filled'
+type Theme = 'light' | 'dark'
+
+const COLORS = ['currentColor', '#ff5a36', '#6957e8', '#0f9f6e', '#2878ff']
+const SIZES = [20, 24, 30, 32]
+const INSTALL_COMMAND = 'pnpm add @yoroll/react-icon'
+
+const CATEGORIES: Array<{
+  id: CategoryId
+  label: string
+  keywords?: string[]
+}> = [
+  { id: 'all', label: 'All icons' },
+  {
+    id: 'interface',
+    label: 'Interface',
+    keywords: [
+      'add', 'arrow', 'check', 'close', 'copy', 'cursor', 'delete', 'document',
+      'download', 'edit', 'expand', 'filter', 'folder', 'home', 'layout', 'link',
+      'lock', 'menu', 'more', 'search', 'setting', 'share', 'upload',
+    ],
+  },
+  {
+    id: 'game',
+    label: 'Game',
+    keywords: [
+      'game', 'controller', 'battle', 'chapter', 'scene', 'map', 'trophy',
+      'rank', 'reward', 'weapon', 'skill', 'target', 'role', 'team', 'player',
+    ],
+  },
+  {
+    id: 'media',
+    label: 'Media',
+    keywords: [
+      'play', 'pause', 'volume', 'sound', 'music', 'video', 'camera', 'image',
+      'record', 'mic', 'voice', 'screen', 'frame',
+    ],
+  },
+  {
+    id: 'social',
+    label: 'Social',
+    keywords: [
+      'comment', 'chat', 'message', 'mail', 'user', 'people', 'friend', 'like',
+      'heart', 'emoji', 'community', 'share', 'notification',
+    ],
+  },
+  {
+    id: 'filled',
+    label: 'Filled',
+    keywords: ['filled'],
+  },
+]
 
 const iconEntries = Object.entries(SvgComs).filter(
-  ([, C]) => typeof C === 'function'
-) as [string, React.ComponentType<SvgComs.IconProps>][]
+  ([, component]) => typeof component === 'function',
+) as IconEntry[]
+
+const displayName = (name: string) =>
+  name
+    .replace(/^Icon/, '')
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
+
+const matchesCategory = (name: string, category: CategoryId) => {
+  if (category === 'all') return true
+  const keywords = CATEGORIES.find((item) => item.id === category)?.keywords ?? []
+  const normalized = name.toLowerCase()
+  return keywords.some((keyword) => normalized.includes(keyword))
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="11" cy="11" r="6.5" />
+      <path d="m16 16 4 4" />
+    </svg>
+  )
+}
+
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 12h14M14 7l5 5-5 5" />
+    </svg>
+  )
+}
+
+function CopyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="8" width="11" height="11" rx="2" />
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+    </svg>
+  )
+}
+
+function CheckIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m5 12 4 4L19 6" />
+    </svg>
+  )
+}
+
+function SunIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="3.5" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" />
+    </svg>
+  )
+}
+
+function MoonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M20 15.2A8.2 8.2 0 0 1 8.8 4a8.2 8.2 0 1 0 11.2 11.2Z" />
+    </svg>
+  )
+}
 
 export default function Home() {
-  const [color, setColor] = useState('#ffffff')
-  const [size, setSize] = useState(30)
-  const [copiedName, setCopiedName] = useState<string | null>(null)
-  const [search, setSearch] = useState('')
-
-  const filteredIcons = iconEntries.filter(([name]) =>
-    name.toLowerCase().includes(search.toLowerCase())
+  const [theme, setTheme] = useState<Theme>(() =>
+    typeof document !== 'undefined' && document.documentElement.dataset.theme === 'dark'
+      ? 'dark'
+      : 'light',
   )
+  const [color, setColor] = useState(COLORS[0])
+  const [size, setSize] = useState(24)
+  const [search, setSearch] = useState('')
+  const [category, setCategory] = useState<CategoryId>('all')
+  const [copied, setCopied] = useState<string | null>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const onClick = (name: string) => {
-    const snippet = `import { ${name} } from '@yoroll/react-icon'\n\n<${name} size={${size}} color={'${color}'} />`
-    navigator.clipboard.writeText(snippet)
-    setCopiedName(name)
-    setTimeout(() => setCopiedName(null), 1500)
+  const featuredIcons = iconEntries.slice(0, 15)
+  const filteredIcons = useMemo(() => {
+    const normalizedSearch = search.trim().toLowerCase()
+    return iconEntries.filter(([name]) => {
+      const matchesSearch =
+        !normalizedSearch ||
+        name.toLowerCase().includes(normalizedSearch) ||
+        displayName(name).toLowerCase().includes(normalizedSearch)
+      return matchesSearch && matchesCategory(name, category)
+    })
+  }, [category, search])
+
+  useEffect(() => {
+    const focusSearch = (event: KeyboardEvent) => {
+      if (
+        event.key === '/' &&
+        document.activeElement?.tagName !== 'INPUT' &&
+        document.activeElement?.tagName !== 'TEXTAREA'
+      ) {
+        event.preventDefault()
+        searchRef.current?.focus()
+      }
+    }
+
+    window.addEventListener('keydown', focusSearch)
+    return () => {
+      window.removeEventListener('keydown', focusSearch)
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    }
+  }, [])
+
+  const showCopied = (label: string) => {
+    setCopied(label)
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    copyTimerRef.current = setTimeout(() => setCopied(null), 1800)
+  }
+
+  const copyText = async (text: string, label: string) => {
+    await navigator.clipboard.writeText(text)
+    showCopied(label)
+  }
+
+  const copyIcon = (name: string) => {
+    const snippet = `import { ${name} } from '@yoroll/react-icon'\n\n<${name} size={${size}} color="${color}" />`
+    void copyText(snippet, name)
+  }
+
+  const toggleTheme = () => {
+    const nextTheme: Theme = theme === 'light' ? 'dark' : 'light'
+    setTheme(nextTheme)
+    document.documentElement.dataset.theme = nextTheme
+    window.localStorage.setItem('lg-icons-theme', nextTheme)
   }
 
   return (
-    <main style={{
-      minHeight: '100vh',
-      backgroundColor: '#0a0a0a',
-      padding: '24px 32px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-    }}>
-      {/* Header */}
-      <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: '#fff', margin: 0 }}>
-          Linear Game Icons
-        </h1>
-        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', marginTop: 6 }}>
-          Click any icon to copy the import code
-        </p>
-      </div>
-
-      {/* Controls */}
-      <div style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 16,
-        marginBottom: 20,
-        padding: '14px 18px',
-        borderRadius: 12,
-        backgroundColor: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.08)',
-      }}>
-        {/* Color Picker */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}>Color</span>
-          {COLORS.map((c) => (
-            <div
-              key={c}
-              onClick={() => setColor(c)}
-              style={{
-                width: 26,
-                height: 26,
-                borderRadius: '50%',
-                backgroundColor: c,
-                cursor: 'pointer',
-                border: color === c ? '2px solid rgba(255,255,255,0.8)' : '2px solid transparent',
-                transform: color === c ? 'scale(1.15)' : 'scale(1)',
-                transition: 'all 0.15s ease',
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Size Picker */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.45)' }}>Size</span>
-          {SIZES.map((s) => (
-            <div
-              key={s}
-              onClick={() => setSize(s)}
-              style={{
-                width: 34,
-                height: 28,
-                borderRadius: 6,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: 11,
-                cursor: 'pointer',
-                backgroundColor: size === s ? 'rgba(255,255,255,0.15)' : 'rgba(255,255,255,0.04)',
-                color: size === s ? '#fff' : 'rgba(255,255,255,0.45)',
-                border: size === s ? '1px solid rgba(255,255,255,0.25)' : '1px solid rgba(255,255,255,0.08)',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              {s}
-            </div>
-          ))}
-        </div>
-
-        {/* Search */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <input
-            type="text"
-            placeholder="Search icons..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={{
-              width: 180,
-              height: 30,
-              borderRadius: 6,
-              border: '1px solid rgba(255,255,255,0.1)',
-              backgroundColor: 'rgba(255,255,255,0.04)',
-              color: '#fff',
-              fontSize: 12,
-              padding: '0 10px',
-              outline: 'none',
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Summary Stats */}
-      <div style={{
-        display: 'flex',
-        gap: 12,
-        marginBottom: 20,
-        flexWrap: 'wrap',
-      }}>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '6px 12px',
-          borderRadius: 8,
-          backgroundColor: 'rgba(96,165,250,0.08)',
-          border: '1px solid rgba(96,165,250,0.15)',
-        }}>
-          <span style={{ fontSize: 12, fontFamily: 'monospace', color: 'rgba(96,165,250,0.9)' }}>@yoroll/react-icon</span>
-        </div>
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '6px 12px',
-          borderRadius: 8,
-          backgroundColor: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}>
-          <span style={{ fontSize: 18, fontWeight: 700, color: '#fff' }}>{iconEntries.length}</span>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)' }}>total icons</span>
-        </div>
-        {search && (
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            padding: '6px 12px',
-            borderRadius: 8,
-            backgroundColor: 'rgba(255,217,61,0.08)',
-            border: '1px solid rgba(255,217,61,0.15)',
-          }}>
-            <span style={{ fontSize: 18, fontWeight: 700, color: '#ffd93d' }}>{filteredIcons.length}</span>
-            <span style={{ fontSize: 12, color: 'rgba(255,217,61,0.6)' }}>matched</span>
-          </div>
-        )}
-        <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 6,
-          padding: '6px 12px',
-          borderRadius: 8,
-          backgroundColor: 'rgba(107,203,119,0.08)',
-          border: '1px solid rgba(107,203,119,0.15)',
-        }}>
-          <span style={{ fontSize: 12, color: 'rgba(107,203,119,0.8)' }}>
-            Also available as <span style={{ fontFamily: 'monospace' }}>@yoroll/rn-icon</span> for React Native
+    <div className="site-shell">
+      <header className="site-header">
+        <a className="brand" href="#top" aria-label="Linear Game Icons home">
+          <span className="brand-mark" aria-hidden="true">
+            <span />
+            <span />
+            <span />
           </span>
-        </div>
-      </div>
+          <span>Linear Game Icons</span>
+        </a>
 
-      {/* Icon Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(96px, 1fr))',
-        gap: 2,
-      }}>
-        {filteredIcons.map(([name, C], i) => {
-          const isCopied = copiedName === name
-          return (
-            <div
-              onClick={() => onClick(name)}
-              key={i}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '14px 6px 10px',
-                borderRadius: 8,
-                cursor: 'pointer',
-                border: isCopied
-                  ? '1px solid rgba(107,203,119,0.3)'
-                  : '1px solid transparent',
-                backgroundColor: isCopied
-                  ? 'rgba(107,203,119,0.06)'
-                  : 'transparent',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!isCopied) {
-                  e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.04)'
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isCopied) {
-                  e.currentTarget.style.backgroundColor = 'transparent'
-                  e.currentTarget.style.borderColor = 'transparent'
-                }
-              }}
-            >
-              <div style={{
-                width: 44,
-                height: 44,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 8,
-                backgroundColor: 'rgba(255,255,255,0.03)',
-              }}>
-                {C && <C size={size} color={color} />}
+        <nav className="site-nav" aria-label="Main navigation">
+          <a href="#icons">Icons</a>
+          <a href="#install">Install</a>
+          <a
+            href="https://github.com/LinearGameAI/linear-game-icons"
+            target="_blank"
+            rel="noreferrer"
+          >
+            GitHub
+          </a>
+        </nav>
+
+        <div className="header-actions">
+          <button
+            type="button"
+            className="theme-toggle"
+            onClick={toggleTheme}
+            suppressHydrationWarning
+            aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            <span className="theme-icon theme-icon-sun"><SunIcon /></span>
+            <span className="theme-icon theme-icon-moon"><MoonIcon /></span>
+            <span className="theme-toggle-knob" />
+          </button>
+          <a
+            className="header-cta"
+            href="https://www.npmjs.com/package/@yoroll/react-icon"
+            target="_blank"
+            rel="noreferrer"
+          >
+            View on npm
+            <ArrowIcon />
+          </a>
+        </div>
+      </header>
+
+      <main id="top">
+        <section className="hero page-width">
+          <div className="hero-copy">
+            <div className="eyebrow">
+              <span className="eyebrow-dot" />
+              Open source · React &amp; React Native
+            </div>
+            <h1>
+              Icons made for
+              <span> game interfaces.</span>
+            </h1>
+            <p className="hero-description">
+              A focused icon set for games, creative tools, and interactive products.
+              Consistent, lightweight, and ready to drop into your next interface.
+            </p>
+
+            <div className="hero-actions">
+              <a className="primary-button" href="#icons">
+                Explore {iconEntries.length} icons
+                <ArrowIcon />
+              </a>
+              <button
+                className="install-command"
+                type="button"
+                onClick={() => void copyText(INSTALL_COMMAND, 'install')}
+                aria-label="Copy install command"
+              >
+                <span className="terminal-caret">›</span>
+                <code>{INSTALL_COMMAND}</code>
+                <span className="command-copy">
+                  {copied === 'install' ? <CheckIcon /> : <CopyIcon />}
+                </span>
+              </button>
+            </div>
+
+            <div className="hero-meta" aria-label="Library highlights">
+              <div>
+                <strong>{iconEntries.length}</strong>
+                <span>carefully drawn icons</span>
               </div>
-              <span style={{
-                fontSize: 9,
-                color: isCopied ? '#6bcb77' : 'rgba(255,255,255,0.35)',
-                marginTop: 8,
-                textAlign: 'center',
-                wordBreak: 'break-all',
-                lineHeight: 1.3,
-                transition: 'color 0.15s ease',
-              }}>
-                {isCopied ? '✓ Copied!' : name}
+              <div>
+                <strong>2</strong>
+                <span>platform packages</span>
+              </div>
+              <div>
+                <strong>SVG</strong>
+                <span>crisp at every size</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="hero-visual" aria-label="A sample of icons from the library">
+            <div className="visual-glow visual-glow-one" />
+            <div className="visual-glow visual-glow-two" />
+            <div className="visual-toolbar">
+              <span className="visual-logo">LG</span>
+              <div>
+                <strong>Interface kit</strong>
+                <span>{iconEntries.length} assets</span>
+              </div>
+              <span className="visual-status">Ready</span>
+            </div>
+            <div className="featured-grid">
+              {featuredIcons.map(([name, Icon], index) => (
+                <div
+                  className={`featured-icon featured-icon-${(index % 5) + 1}`}
+                  key={name}
+                  title={name}
+                >
+                  <Icon size={index % 4 === 0 ? 30 : 25} color="currentColor" />
+                </div>
+              ))}
+            </div>
+            <div className="visual-footer">
+              <div className="visual-avatars">
+                <span>R</span>
+                <span>RN</span>
+              </div>
+              <span>Built for product teams</span>
+              <div className="visual-pulse" />
+            </div>
+          </div>
+        </section>
+
+        <section className="marquee-band" aria-label="Library qualities">
+          <div className="marquee-track page-width">
+            <span>Pixel perfect</span>
+            <i />
+            <span>Tree shakeable</span>
+            <i />
+            <span>TypeScript ready</span>
+            <i />
+            <span>React Native</span>
+            <i />
+            <span>Open source</span>
+          </div>
+        </section>
+
+        <section className="icon-section page-width" id="icons">
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">Icon explorer</span>
+              <h2>Find the right symbol, fast.</h2>
+            </div>
+            <p>
+              Search by name, tune the preview, then click any icon to copy a
+              ready-to-use React snippet.
+            </p>
+          </div>
+
+          <div className="explorer">
+            <div className="explorer-toolbar">
+              <label className="search-field">
+                <SearchIcon />
+                <input
+                  ref={searchRef}
+                  type="search"
+                  placeholder="Search icons…"
+                  value={search}
+                  onChange={(event) => setSearch(event.target.value)}
+                />
+                {search ? (
+                  <button type="button" onClick={() => setSearch('')}>
+                    Clear
+                  </button>
+                ) : (
+                  <kbd>/</kbd>
+                )}
+              </label>
+
+              <div className="preview-controls">
+                <div className="control-group" aria-label="Icon color">
+                  <span className="control-label">Color</span>
+                  <div className="color-options">
+                    {COLORS.map((swatch) => (
+                      <button
+                        type="button"
+                        key={swatch}
+                        className={color === swatch ? 'active' : ''}
+                        style={{ '--swatch': swatch } as React.CSSProperties}
+                        onClick={() => setColor(swatch)}
+                        aria-label={swatch === 'currentColor' ? 'Use theme color' : `Use ${swatch}`}
+                        aria-pressed={color === swatch}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="control-group size-control" aria-label="Icon size">
+                  <span className="control-label">Size</span>
+                  <div className="size-options">
+                    {SIZES.map((option) => (
+                      <button
+                        type="button"
+                        key={option}
+                        className={size === option ? 'active' : ''}
+                        onClick={() => setSize(option)}
+                        aria-pressed={size === option}
+                      >
+                        {option}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="category-row">
+              <div className="category-tabs" role="tablist" aria-label="Icon categories">
+                {CATEGORIES.map((item) => (
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={category === item.id}
+                    className={category === item.id ? 'active' : ''}
+                    key={item.id}
+                    onClick={() => setCategory(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+              <span className="result-count">
+                <strong>{filteredIcons.length}</strong> results
               </span>
             </div>
-          )
-        })}
+
+            {filteredIcons.length > 0 ? (
+              <div className="icon-grid">
+                {filteredIcons.map(([name, Icon]) => {
+                  const isCopied = copied === name
+                  return (
+                    <button
+                      type="button"
+                      className={`icon-card${isCopied ? ' copied' : ''}`}
+                      onClick={() => copyIcon(name)}
+                      key={name}
+                      title={`Copy ${name}`}
+                    >
+                      <span className="icon-stage">
+                        <Icon size={size} color={color} />
+                      </span>
+                      <span className="icon-name">
+                        {isCopied ? 'Copied!' : displayName(name)}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <span className="empty-mark">?</span>
+                <h3>No icons found</h3>
+                <p>Try another keyword or switch back to all icons.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch('')
+                    setCategory('all')
+                  }}
+                >
+                  Reset filters
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="install-section" id="install">
+          <div className="install-inner page-width">
+            <div className="install-copy">
+              <span className="section-kicker light">Quick start</span>
+              <h2>From install to interface in a minute.</h2>
+              <p>
+                Pick the package for your platform. Every icon is typed, customizable,
+                and individually importable.
+              </p>
+              <div className="platform-pills">
+                <span>React</span>
+                <span>Next.js</span>
+                <span>React Native</span>
+                <span>Expo</span>
+              </div>
+            </div>
+
+            <div className="code-card">
+              <div className="code-card-header">
+                <div>
+                  <span className="window-dot red" />
+                  <span className="window-dot amber" />
+                  <span className="window-dot green" />
+                </div>
+                <span>Example.tsx</span>
+              </div>
+              <pre>
+                <code>
+                  <span className="code-purple">import</span>{' { '}
+                  <span className="code-yellow">IconGame</span>
+                  {' } '}<span className="code-purple">from</span>{' '}
+                  <span className="code-green">&apos;@yoroll/react-icon&apos;</span>
+                  {'\n\n'}
+                  <span className="code-muted">{'// Built to match your interface'}</span>
+                  {'\n'}
+                  <span className="code-blue">&lt;IconGame</span>{' '}
+                  <span className="code-yellow">size</span>=&#123;24&#125;{' '}
+                  <span className="code-yellow">color</span>=
+                  <span className="code-green">&quot;currentColor&quot;</span>{' '}
+                  <span className="code-blue">/&gt;</span>
+                </code>
+              </pre>
+              <button
+                type="button"
+                className="code-install"
+                onClick={() => void copyText(INSTALL_COMMAND, 'install-bottom')}
+              >
+                <code>$ {INSTALL_COMMAND}</code>
+                {copied === 'install-bottom' ? <CheckIcon /> : <CopyIcon />}
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="site-footer">
+        <div className="page-width footer-inner">
+          <div className="brand footer-brand">
+            <span className="brand-mark" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span>Linear Game Icons</span>
+          </div>
+          <p>Open-source icons for playful, expressive interfaces.</p>
+          <div className="footer-links">
+            <a href="https://github.com/LinearGameAI/linear-game-icons" target="_blank" rel="noreferrer">
+              GitHub
+            </a>
+            <a href="https://www.npmjs.com/package/@yoroll/react-icon" target="_blank" rel="noreferrer">
+              npm
+            </a>
+            <a href="#top">Back to top ↑</a>
+          </div>
+        </div>
+      </footer>
+
+      <div className={`copy-toast${copied ? ' visible' : ''}`} role="status" aria-live="polite">
+        <span><CheckIcon /></span>
+        {copied?.startsWith('Icon') ? `${copied} snippet copied` : 'Install command copied'}
       </div>
-    </main>
+    </div>
   )
 }

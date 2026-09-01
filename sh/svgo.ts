@@ -89,14 +89,16 @@ const getSvgoConfig = (lang: 'react' | 'vue' | 'rn' = 'react') => {
             '#ffffff': '_strokeColor',
             '#fff': '_strokeColor'
           }
-          const deal = (children: XastChild[]) => {
+          const deal = (children: XastChild[], preserveStructuralColors = false) => {
             children.map((n) => {
               const node = n as XastElement
               if (!node.attributes) return;
+              const shouldPreserveColors =
+                preserveStructuralColors || node.name === 'mask' || node.name === 'clipPath'
               // console.log(node.attributes)
               for (const [name, value] of Object.entries(node.attributes)) {
                 // 处理颜色 key 值, 如果 color, fill, stroke属性值为以上颜色值，则用占位符替换，否则不做变动
-                if (['color', 'fill', 'stroke'].includes(name)) {
+                if (!shouldPreserveColors && ['color', 'fill', 'stroke'].includes(name)) {
                   // 🛑 规则 1: 绝对不碰 url() 引用 (渐变、遮罩、滤镜)
                   if (value.includes('url(')) {
                     continue;
@@ -114,7 +116,7 @@ const getSvgoConfig = (lang: 'react' | 'vue' | 'rn' = 'react') => {
                   }
                 }
               }
-              node.children && deal(node.children)
+              node.children && deal(node.children, shouldPreserveColors)
             })
           }
           deal(root.children)

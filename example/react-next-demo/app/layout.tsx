@@ -12,9 +12,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const themeInitScript = `
+  try {
+    const saved = localStorage.getItem('lg-icons-theme');
+    const theme = saved === 'light' || saved === 'dark'
+      ? saved
+      : matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    document.documentElement.dataset.theme = theme;
+  } catch (_) {}
+`;
+
 export const metadata: Metadata = {
-  title: "Linear Game Icons",
-  description: "Icon library showcase for @yoroll/react-icon",
+  title: "Linear Game Icons — Icons for game interfaces",
+  description: "A focused open-source icon library for React, React Native, and game interfaces.",
 };
 
 export default function RootLayout({
@@ -23,10 +33,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" style={{ backgroundColor: '#0a0a0a' }}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-        style={{ backgroundColor: '#0a0a0a' }}
       >
         {children}
       </body>
