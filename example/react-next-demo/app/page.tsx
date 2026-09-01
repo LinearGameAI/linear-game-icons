@@ -1,6 +1,7 @@
 'use client'
 
 import * as SvgComs from '@yoroll/react-icon'
+import Image from 'next/image'
 import { useEffect, useMemo, useRef, useState } from 'react'
 
 type IconEntry = [string, React.ComponentType<SvgComs.IconProps>]
@@ -197,11 +198,14 @@ export default function Home() {
     <div className="site-shell">
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Linear Game Icons home">
-          <span className="brand-mark" aria-hidden="true">
-            <span />
-            <span />
-            <span />
-          </span>
+          <Image
+            className="brand-logo"
+            src="/linear-game-logo.png"
+            alt=""
+            width={30}
+            height={30}
+            priority
+          />
           <span>Linear Game Icons</span>
         </a>
 
@@ -528,11 +532,13 @@ export default function Home() {
       <footer className="site-footer">
         <div className="page-width footer-inner">
           <div className="brand footer-brand">
-            <span className="brand-mark" aria-hidden="true">
-              <span />
-              <span />
-              <span />
-            </span>
+            <Image
+              className="brand-logo"
+              src="/linear-game-logo.png"
+              alt=""
+              width={30}
+              height={30}
+            />
             <span>Linear Game Icons</span>
           </div>
           <p>Open-source icons for playful, expressive interfaces.</p>
