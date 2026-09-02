@@ -213,12 +213,10 @@ a { color: inherit; text-decoration: none; }
 
 .theme-toggle {
   position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
+  display: block;
   width: 54px;
   height: 32px;
-  padding: 0 6px;
+  padding: 0;
   border: 1px solid var(--line);
   border-radius: 999px;
   background: color-mix(in srgb, var(--surface) 76%, transparent);
@@ -229,11 +227,15 @@ a { color: inherit; text-decoration: none; }
 .theme-toggle:hover { border-color: color-mix(in srgb, var(--ink) 32%, var(--line)); }
 
 .theme-icon {
-  position: relative;
+  position: absolute;
+  top: 50%;
   z-index: 2;
   display: grid;
+  width: 22px;
+  height: 22px;
   place-items: center;
   color: var(--muted);
+  transform: translateY(-50%);
   transition: color 220ms ease;
 }
 
@@ -247,7 +249,8 @@ a { color: inherit; text-decoration: none; }
   stroke-width: 1.8;
 }
 
-.theme-icon-sun { color: var(--canvas); }
+.theme-icon-sun { left: 4px; color: var(--canvas); }
+.theme-icon-moon { left: 26px; }
 
 .theme-toggle-knob {
   position: absolute;
