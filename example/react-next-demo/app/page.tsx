@@ -11,6 +11,7 @@ type Theme = 'light' | 'dark'
 const COLORS = ['currentColor', '#ff5a36', '#6957e8', '#0f9f6e', '#2878ff']
 const SIZES = [20, 24, 30, 32]
 const INSTALL_COMMAND = 'pnpm add @yoroll/react-icon'
+const BRAND_LOGO_SRC = `${process.env.NODE_ENV === 'production' ? '/linear-game-icons' : ''}/linear-game-logo.png`
 
 const CATEGORIES: Array<{
   id: CategoryId
@@ -200,7 +201,7 @@ export default function Home() {
         <a className="brand" href="#top" aria-label="Linear Game Icons home">
           <Image
             className="brand-logo"
-            src="/linear-game-logo.png"
+            src={BRAND_LOGO_SRC}
             alt=""
             width={30}
             height={30}
@@ -534,7 +535,7 @@ export default function Home() {
           <div className="brand footer-brand">
             <Image
               className="brand-logo"
-              src="/linear-game-logo.png"
+              src={BRAND_LOGO_SRC}
               alt=""
               width={30}
               height={30}
