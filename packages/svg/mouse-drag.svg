@@ -1,5 +1,15 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M13.5 3.5V20.5H10.5V3.5H13.5Z" fill="black" stroke="white"/>
-<path d="M6.79297 7.5L2.29297 12L6.79297 16.5H8.5V7.5H6.79297Z" fill="black" stroke="white"/>
-<path d="M17.207 7.5L21.707 12L17.207 16.5H15.5V7.5H17.207Z" fill="black" stroke="white"/>
+<path d="M10.5 3.5H13.5V20.5H10.5V3.5Z" fill="black" stroke="white"/>
+<path d="M7 16H8L8 8H7L3 12L7 16Z" fill="black"/>
+<mask id="stroke0_384_24" maskUnits="userSpaceOnUse" x="1" y="7" width="8" height="10" fill="black">
+<rect fill="white" x="1" y="7" width="8" height="10"/>
+<path d="M7 16H8L8 8H7L3 12L7 16Z"/>
+</mask>
+<path d="M8 16H7L3 12L7 8H8L8 16Z" stroke-width="2" stroke="white" mask="url(#stroke0_384_24)"/>
+<path d="M17 16H16L16 8H17L21 12L17 16Z" fill="black"/>
+<mask id="stroke1_384_24" maskUnits="userSpaceOnUse" x="15" y="7" width="8" height="10" fill="black">
+<rect fill="white" x="15" y="7" width="8" height="10"/>
+<path d="M17 16H16L16 8H17L21 12L17 16Z"/>
+</mask>
+<path d="M16 16H17L21 12L17 8H16L16 16Z" stroke-width="2" stroke="white" mask="url(#stroke1_384_24)"/>
 </svg>

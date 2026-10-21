@@ -1,3 +1,8 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M12.9619 0.5V11.0381H23.5V12.9619H12.9619V23.5H11.0381V12.9619H0.5V11.0381H11.0381V0.5H12.9619Z" fill="#191919" stroke="white"/>
+<path d="M12.4619 11.5381H23V12.4619H12.4619V23H11.5381V12.4619H1V11.5381H11.5381V1H12.4619V11.5381Z" fill="#191919"/>
+<mask id="stroke0_384_33" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24" fill="black">
+<rect fill="white" width="24" height="24"/>
+<path d="M12.4619 11.5381H23V12.4619H12.4619V23H11.5381V12.4619H1V11.5381H11.5381V1H12.4619V11.5381Z"/>
+</mask>
+<path d="M12.4619 11.5381H23V12.4619H12.4619V23H11.5381V12.4619H1V11.5381H11.5381V1H12.4619V11.5381Z" stroke-width="2" stroke="white" mask="url(#stroke0_384_33)"/>
 </svg>

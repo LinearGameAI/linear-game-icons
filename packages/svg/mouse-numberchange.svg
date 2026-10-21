@@ -1,4 +1,12 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M10.5 17L9.30567 17L0.97168 12L9.30566 7L10.5 7L10.5 17Z" fill="black" stroke="white"/>
-<path d="M13.5 17L14.6943 17L23.0283 12L14.6943 7L13.5 7L13.5 17Z" fill="black" stroke="white"/>
+<path d="M11 13.1L11 17.5L9.16667 17.5L-1.18611e-06 12L9.16667 6.5L11 6.5L11 10.9L11 13.1Z" fill="black"/>
+<mask id="stroke0_384_28" fill="white">
+<path d="M11 13.1L11 17.5L9.16667 17.5L-1.18611e-06 12L9.16667 6.5L11 6.5L11 10.9L11 13.1Z"/>
+</mask>
+<path d="M11 17.5L11 13.1L11 10.9L11 6.5L9.16667 6.5L-1.18611e-06 12L9.16667 17.5L11 17.5Z" stroke-width="2" stroke="white" mask="url(#stroke0_384_28)"/>
+<path d="M13 13.1L13 17.5L14.8333 17.5L24 12L14.8333 6.5L13 6.5L13 10.9L13 13.1Z" fill="black"/>
+<mask id="stroke1_384_28" fill="white">
+<path d="M13 13.1L13 17.5L14.8333 17.5L24 12L14.8333 6.5L13 6.5L13 10.9L13 13.1Z"/>
+</mask>
+<path d="M13 17.5L13 13.1L13 10.9L13 6.5L14.8333 6.5L24 12L14.8333 17.5L13 17.5Z" stroke-width="2" stroke="white" mask="url(#stroke1_384_28)"/>
 </svg>
